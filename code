@@ -5,5 +5,27 @@ las = lasio.read('1051661275.las')
 
 d = las.df()                            #opening the file
 x=d.describe()
-y='hai'
-print(y)
+
+
+#***************DATA CLEANING************************
+
+#anomalies found: negative RHOB and RHOC
+#high values for RHOB (~200)
+#extremely high values for GR, RILD, and RILM (100000)
+#negative values for porosity values (CNDL, CNLS, CNPOR, DPOR)
+#negative gamma ray api values (GR)
+#negative sonic log values (SPOR)
+
+d['RHOB'][(d['RHOB'] < 0) | (d['RHOB'] > 20)] = np.nan
+d['GR'][(d['GR'] > 1000) | (d['GR'] < 0)] = np.nan
+d['RILD'][d['RILD'] > 99999] = np.nan
+d['RILM'][d['RILM'] > 99999] = np.nan
+
+d['CNDL'][(d['CNDL'] < 0) | (d['CNDL'] > 100)] = np.nan
+d['CNLS'][(d['CNLS'] < 0) | (d['CNLS'] > 100)] = np.nan
+d['DPOR'][(d['DPOR'] < 0) | (d['DPOR'] > 100)] = np.nan
+d['CNPOR'][(d['CNPOR'] < 0) | (d['CNPOR'] > 100)] = np.nan
+
+d['SPOR'][d['SPOR'] < 0] = np.nan
+
+#*****************************************************
