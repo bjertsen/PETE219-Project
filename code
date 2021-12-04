@@ -75,31 +75,23 @@ print('Thickness of potential reservoir is', (df['GR'] < 50).sum()*0.5*0.3048, '
 
 #plotting resistivity log
 
-ax = df.plot(x='RILD', y='DEPTH', c='red', lw=0.5, legend='Deep resistivity', figsize=(7,10))
-ax = df.plot(x='RILM', y='DEPTH', c='blue', lw=0.5, legend='Medium resistivity', figsize=(7,10),ax=ax)
-ax = df.plot(x='RLL3', y='DEPTH', c='black', lw=0.5, legend='Shallow resistivity', figsize=(7,10),ax=ax)
-plt.ylim(5050, 0)
-plt.xlim(0,500)
-plt.tick_params(axis='both', which='major', labelsize=10, labelbottom = False, bottom=False, top = False, labeltop=True)
-plt.legend()
-plt.ylabel("Depth (ft)")
-plt.title('Resistivity')
-ax.set_xlabel("Resistivity (Ohmmeter)")
-ax.xaxis.set_label_position('top')
+fig_res, axes = plt.subplots(1,3, sharex=True, sharey=True, figsize=(21,10))
+df.plot(x='RILD', y='DEPTH', ax=axes[0], legend=False, logx=True, lw=0.5, c='red')
+df.plot(x='RILM', y='DEPTH',ax=axes[1], legend=False, logx=True, lw=0.5)
+df.plot(x='RLL3', y='DEPTH',ax=axes[2], legend=False, logx=True, lw=0.5, c='black')
+axes[0].set_xlim(0,100000)
+axes[0].set_ylim(5031, 295)
+fig_res.suptitle('Resistivity (ohmmeter)', fontsize='xx-large')
+axes[0].set_ylabel('Depth (ft)')
+
 
 #assuming RILM>200 means good reservoir, we find the potential reservoir thickness
 #We find the region where RILM>200 and GR<50
-x1=df.loc[logic4,'RILM']
-y=x1.to_numpy()
-logic9= y>200
-print('Thickness of potential reservoir is', logic9.sum()*0.5*0.3048, 'm')
+
+print('Thickness of potential reservoir is', (df.loc[(df['GR'] < 50),'RILM'] > 200).sum()*0.5*0.3048, 'm')
+
 
 #plotting neutron porosity and bulk density
-
-#removing negative values from density
-logic10 = df["RHOB"] <0
-df.loc[logic10,"RHOB"] = np.nan
-x=df.describe()
 
 fig = plt.subplots(figsize=(7,10))
 
@@ -113,7 +105,7 @@ ax1.xaxis.label.set_color("red")
 ax1.tick_params(axis='x', colors="red")
 ax1.spines["top"].set_edgecolor("red")
 
-ax2.plot('DPOR', 'DEPTH', data=df, color='blue', lw=0.5)
+ax2.plot('CNPOR', 'DEPTH', data=df, color='blue', lw=0.5)
 ax2.set_xlim(45, -15)
 ax2.set_xlabel('Neutron')
 ax2.xaxis.label.set_color("blue")
@@ -122,7 +114,7 @@ ax2.tick_params(axis='x', colors="blue")
 ax2.spines["top"].set_edgecolor("blue")
 
 x1=df['RHOB']
-x2=df['DPOR']
+x2=df['CNPOR']
 
 x3 = np.array(ax1.get_xlim())
 z = np.array(ax2.get_xlim())
@@ -173,24 +165,24 @@ ax2.set_xticks([0.1, 1, 10, 100, 1000])
 ax2.semilogx()
 
 # Density track
-ax3.plot(df["RHOB"], df.index, color = "red", linewidth = 0.5)
+ax3.plot(df["RHOB"], df.index, color = "k", linewidth = 0.5)
 ax3.set_xlabel("Density")
 ax3.set_xlim(1.95, 2.95)
-ax3.xaxis.label.set_color("red")
-ax3.tick_params(axis='x', colors="red")
-ax3.spines["top"].set_edgecolor("red")
+ax3.xaxis.label.set_color("k")
+ax3.tick_params(axis='x', colors="k")
+ax3.spines["top"].set_edgecolor("k")
 ax3.set_xticks([1.95, 2.45, 2.95])
 
 # Neutron track placed ontop of density track
-ax5.plot(df["DPOR"], df.index, color = "blue", linewidth = 0.5)
+ax5.plot(df["CNPOR"], df.index, color = "k", linewidth = 0.5)
 ax5.set_xlabel('Neutron')
-ax5.xaxis.label.set_color("blue")
+ax5.xaxis.label.set_color("k")
 ax5.set_xlim(45, -15)
 ax5.set_ylim(4150, 3500)
-ax5.tick_params(axis='x', colors="blue")
+ax5.tick_params(axis='x', colors="k")
 ax5.spines["top"].set_position(("axes", 1.08))
 ax5.spines["top"].set_visible(True)
-ax5.spines["top"].set_edgecolor("blue")
+ax5.spines["top"].set_edgecolor("k")
 ax5.set_xticks([45,  15, -15])
 
 # Resistivity track - Curve 2
