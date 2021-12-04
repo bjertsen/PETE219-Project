@@ -30,3 +30,214 @@ d['CNPOR'][(d['CNPOR'] < 0) | (d['CNPOR'] > 100)] = np.nan
 d['SPOR'][d['SPOR'] < 0] = np.nan
 
 #*****************************************************
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import lasio
+
+f = open('1051661275.las', 'r') # 'r' = read
+lines = f.read()
+
+#opening file and convering it to a data frame
+las = lasio.read('1051661275.las')
+df = las.df()  
+
+#depth was set as index, creating a new column for depth and setting a new index
+df['DEPTH'] = df.index
+index=pd.Index(list(range(9473)))
+df = df.set_index([index])
+x=df.describe()
+
+#cleaning GR, removing zeros, negative values and really high values
+GRzeros = df["GR"].value_counts().loc[0]
+logic1 = df["GR"] == 0
+df.loc[logic1,"GR"] = np.nan
+GR100k = df["GR"].value_counts().loc[100000]
+logic2 = df["GR"] == 100000
+df.loc[logic2,"GR"] = np.nan
+logic3 = df["GR"] < 0
+df.loc[logic3,"GR"] = np.nan
+
+
+#plotting GR
+
+left_col_value = 0
+right_col_value = 250
+curve = df['GR']
+span = abs(left_col_value - right_col_value)
+cmap = plt.get_cmap('summer_r')
+color_index = np.arange(left_col_value, right_col_value, span / 100)
+ax = df.plot(x='GR', y='DEPTH', c='black', lw=0.5, legend=False, figsize=(7,10))
+plt.ylim(5050, 0)
+plt.xlim(0,550)
+plt.tick_params(axis='both', which='major', labelsize=10, labelbottom = False, bottom=False, top = False, labeltop=True)
+plt.ylabel("Depth (ft)")
+plt.title('Gamma Ray')
+ax.set_xlabel("GR (API)")
+ax.xaxis.set_label_position('top') 
+
+for index in sorted(color_index):
+    index_value = (index - left_col_value)/span
+    color = cmap(index_value) 
+    plt.fill_betweenx(df['DEPTH'], 550 , curve, where = curve >= index,  color = color)
+plt.show()
+
+#finding potential reservoir thickness in meters assuming GR<50= good reservoir
+logic4= df['GR']<50
+print('Thickness of potential reservoir is', logic4.sum()*0.5*0.3048, 'm')
+
+
+#cleaning RILD, removing 100k values, and values above 5000
+RILD100k = df["RILD"].value_counts().loc[100000]
+logic5 = df["RILD"] == 100000
+df.loc[logic5,"RILD"] = np.nan
+logic6 = df["RILD"] >5000
+df.loc[logic6,"RILD"] = np.nan
+x=df.describe()
+
+#Repeating same for RILM
+RILM100k = df["RILM"].value_counts().loc[100000]
+logic7 = df["RILM"] == 100000
+df.loc[logic7,"RILM"] = np.nan
+logic8 = df["RILM"] >5000
+df.loc[logic8,"RILM"] = np.nan
+x=df.describe()
+
+#shallow resistivity seems alright
+#plotting resistivity log
+
+ax = df.plot(x='RILD', y='DEPTH', c='red', lw=0.5, legend='Deep resistivity', figsize=(7,10))
+ax = df.plot(x='RILM', y='DEPTH', c='blue', lw=0.5, legend='Medium resistivity', figsize=(7,10),ax=ax)
+ax = df.plot(x='RLL3', y='DEPTH', c='black', lw=0.5, legend='Shallow resistivity', figsize=(7,10),ax=ax)
+plt.ylim(5050, 0)
+plt.xlim(0,500)
+plt.tick_params(axis='both', which='major', labelsize=10, labelbottom = False, bottom=False, top = False, labeltop=True)
+plt.legend()
+plt.ylabel("Depth (ft)")
+plt.title('Resistivity')
+ax.set_xlabel("Resistivity (Ohmmeter)")
+ax.xaxis.set_label_position('top')
+
+#assuming RILM>200 means good reservoir, we find the potential reservoir thickness
+#We find the region where RILM>200 and GR<50
+x1=df.loc[logic4,'RILM']
+y=x1.to_numpy()
+logic9= y>200
+print('Thickness of potential reservoir is', logic9.sum()*0.5*0.3048, 'm')
+
+#plotting neutron porosity and bulk density
+
+#removing negative values from density
+logic10 = df["RHOB"] <0
+df.loc[logic10,"RHOB"] = np.nan
+x=df.describe()
+
+fig = plt.subplots(figsize=(7,10))
+
+ax1 = plt.subplot2grid((1,1), (0,0), rowspan=1, colspan=1)
+ax2 = ax1.twiny()
+
+ax1.plot('RHOB', 'DEPTH', data=df, color='red', lw=0.5)
+ax1.set_xlim(1.95, 2.95)
+ax1.set_xlabel('Density')
+ax1.xaxis.label.set_color("red")
+ax1.tick_params(axis='x', colors="red")
+ax1.spines["top"].set_edgecolor("red")
+
+ax2.plot('DPOR', 'DEPTH', data=df, color='blue', lw=0.5)
+ax2.set_xlim(45, -15)
+ax2.set_xlabel('Neutron')
+ax2.xaxis.label.set_color("blue")
+ax2.spines["top"].set_position(("axes", 1.08))
+ax2.tick_params(axis='x', colors="blue")
+ax2.spines["top"].set_edgecolor("blue")
+
+x1=df['RHOB']
+x2=df['DPOR']
+
+x3 = np.array(ax1.get_xlim())
+z = np.array(ax2.get_xlim())
+
+nz=((x2-np.max(z))/(np.min(z)-np.max(z)))*(np.max(x3)-np.min(x3))+np.min(x3)
+
+ax1.fill_betweenx(df['DEPTH'], x1, nz, where=x1>=nz, interpolate=True, color='green')
+ax1.fill_betweenx(df['DEPTH'], x1, nz, where=x1<=nz, interpolate=True, color='yellow')
+
+#all well logs in one plot
+fig, ax = plt.subplots(figsize=(15,10))
+
+#Set up the plot axes
+ax1 = plt.subplot2grid((1,6), (0,0), rowspan=1, colspan = 1)
+ax2 = plt.subplot2grid((1,6), (0,1), rowspan=1, colspan = 1, sharey = ax1)
+ax3 = plt.subplot2grid((1,6), (0,2), rowspan=1, colspan = 1, sharey = ax1)
+ax5 = ax3.twiny() #Twins the y-axis for the density track with the neutron track
+ax7 = ax2.twiny()
+
+# As our curve scales will be detached from the top of the track,
+# this code adds the top border back in without dealing with splines
+ax10 = ax1.twiny()
+ax10.xaxis.set_visible(False)
+ax11 = ax2.twiny()
+ax11.xaxis.set_visible(False)
+ax12 = ax3.twiny()
+ax12.xaxis.set_visible(False)
+
+# Gamma Ray track
+ax1.plot(df["GR"], df.index, color = "green", linewidth = 0.5)
+ax1.set_xlabel("Gamma")
+ax1.xaxis.label.set_color("green")
+ax1.set_xlim(0, 200)
+ax1.set_ylabel("Depth (m)")
+ax1.tick_params(axis='x', colors="green")
+ax1.spines["top"].set_edgecolor("green")
+ax1.title.set_color('green')
+ax1.set_xticks([0, 50, 100, 150, 200])
+
+# Resistivity track
+ax2.plot(df["RILD"], df.index, color = "red", linewidth = 0.5)
+ax2.set_xlabel("Resistivity - Deep")
+ax2.set_xlim(0.2, 2000)
+ax2.xaxis.label.set_color("red")
+ax2.tick_params(axis='x', colors="red")
+ax2.spines["top"].set_edgecolor("red")
+ax2.set_xticks([0.1, 1, 10, 100, 1000])
+ax2.semilogx()
+
+# Density track
+ax3.plot(df["RHOB"], df.index, color = "red", linewidth = 0.5)
+ax3.set_xlabel("Density")
+ax3.set_xlim(1.95, 2.95)
+ax3.xaxis.label.set_color("red")
+ax3.tick_params(axis='x', colors="red")
+ax3.spines["top"].set_edgecolor("red")
+ax3.set_xticks([1.95, 2.45, 2.95])
+
+# Neutron track placed ontop of density track
+ax5.plot(df["DPOR"], df.index, color = "blue", linewidth = 0.5)
+ax5.set_xlabel('Neutron')
+ax5.xaxis.label.set_color("blue")
+ax5.set_xlim(45, -15)
+ax5.set_ylim(4150, 3500)
+ax5.tick_params(axis='x', colors="blue")
+ax5.spines["top"].set_position(("axes", 1.08))
+ax5.spines["top"].set_visible(True)
+ax5.spines["top"].set_edgecolor("blue")
+ax5.set_xticks([45,  15, -15])
+
+# Resistivity track - Curve 2
+ax7.plot(df["RILM"], df.index, color = "green", linewidth = 0.5)
+ax7.set_xlabel("Resistivity - Med")
+ax7.set_xlim(0.2, 2000)
+ax7.xaxis.label.set_color("green")
+ax7.spines["top"].set_position(("axes", 1.08))
+ax7.spines["top"].set_visible(True)
+ax7.tick_params(axis='x', colors="green")
+ax7.spines["top"].set_edgecolor("green")
+ax7.set_xticks([0.1, 1, 10, 100, 1000])
+ax7.semilogx()
+
+for ax in [ax2, ax3]:
+    plt.setp(ax.get_yticklabels(), visible = False)
+    
+plt.tight_layout()
+fig.subplots_adjust(wspace = 0.15)
