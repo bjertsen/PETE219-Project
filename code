@@ -241,3 +241,85 @@ for ax in [ax2, ax3]:
     
 plt.tight_layout()
 fig.subplots_adjust(wspace = 0.15)
+
+
+
+**************LINEAR REGRESSION**************
+
+d=pd.read_csv('poro_perm_data.csv')
+
+#eliminating negative porosity values 
+boolpor =d.loc[:,"Porosity (%)"] > 0  
+d=d[boolpor]
+
+
+#LR for whole data set
+x=d.loc[:,'Porosity (%)'].to_numpy().reshape(-1,1)
+y=d.loc[:,'Permeability (mD)'].to_numpy().reshape(-1,1)
+plt.scatter(x,y)
+plt.xlabel('Porosity (%)')
+plt.ylabel('Permeability (mD)')
+plt.title('Porosity vs. Permeability')
+plt.show()
+d=d.dropna()
+
+model = LinearRegression()
+model.fit(x, y)
+r_sq = model.score(x, y)
+y_pred = model.predict(x)
+plt.scatter(x,y)
+plt.plot(x,y_pred, color="k")
+
+#LR for overbanks facies
+boolob=d.loc[:,'Facies']=="'overbanks'"
+overbanks=d[boolob]
+
+obx=overbanks.loc[:,'Porosity (%)'].to_numpy().reshape(-1,1)
+oby=overbanks.loc[:,'Permeability (mD)'].to_numpy().reshape(-1,1)
+plt.scatter(obx,oby)
+plt.xlabel('Porosity (%)')
+plt.ylabel('Permeability (mD)')
+plt.title('Overbanks: phi vs. K')
+plt.show()
+model = LinearRegression()
+model.fit(obx, oby)
+r_sq = model.score(obx, oby)
+y_pred = model.predict(obx)
+plt.scatter(obx,oby)
+plt.plot(obx,y_pred, color="k")
+
+#LR for crevasse splay facies
+boolcs=d.loc[:,'Facies']=="'crevasse splay'"
+crevasse=d[boolcs]
+
+csx=crevasse.loc[:,'Porosity (%)'].to_numpy().reshape(-1,1)
+csy=crevasse.loc[:,'Permeability (mD)'].to_numpy().reshape(-1,1)
+plt.scatter(csx,csy)
+plt.xlabel('Porosity (%)')
+plt.ylabel('Permeability (mD)')
+plt.title('Crevasse Splay: phi vs. K')
+plt.show()
+model = LinearRegression()
+model.fit(csx, csy)
+r_sq = model.score(csx, csy)
+y_pred = model.predict(csx)
+plt.scatter(csx,csy)
+plt.plot(csx,y_pred, color="k")
+
+#LR for channels facies
+boolch=d.loc[:,'Facies']=="'channel'"
+channel=d[boolch]
+
+chx=channel.loc[:,'Porosity (%)'].to_numpy().reshape(-1,1)
+chy=channel.loc[:,'Permeability (mD)'].to_numpy().reshape(-1,1)
+plt.scatter(chx,chy)
+plt.xlabel('Porosity (%)')
+plt.ylabel('Permeability (mD)')
+plt.title('Channels: phi vs. K')
+plt.show()
+model = LinearRegression()
+model.fit(chx, chy)
+r_sq = model.score(chx, chy)
+y_pred = model.predict(chx)
+plt.scatter(chx,chy)
+plt.plot(chx,y_pred, color="k")
