@@ -1,10 +1,13 @@
 import lasio
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
+
+#opening file and convering it to a data frame
 las = lasio.read('1051661275.las')
 
-d = las.df()                            #opening the file
+df = las.df()                            #opening the file
 x=d.describe()
 
 
@@ -17,46 +20,28 @@ x=d.describe()
 #negative gamma ray api values (GR)
 #negative sonic log values (SPOR)
 
-d['RHOB'][(d['RHOB'] < 0) | (d['RHOB'] > 20)] = np.nan
-d['GR'][(d['GR'] > 1000) | (d['GR'] < 0)] = np.nan
-d['RILD'][d['RILD'] > 99999] = np.nan
-d['RILM'][d['RILM'] > 99999] = np.nan
+df['RHOB'][(df['RHOB'] < 0) | (df['RHOB'] > 20)] = np.nan
+df['GR'][(df['GR'] > 1000) | (df['GR'] < 0)] = np.nan
+df['RILD'][df['RILD'] > 99999] = np.nan
+df['RILM'][df['RILM'] > 99999] = np.nan
 
-d['CNDL'][(d['CNDL'] < 0) | (d['CNDL'] > 100)] = np.nan
-d['CNLS'][(d['CNLS'] < 0) | (d['CNLS'] > 100)] = np.nan
-d['DPOR'][(d['DPOR'] < 0) | (d['DPOR'] > 100)] = np.nan
-d['CNPOR'][(d['CNPOR'] < 0) | (d['CNPOR'] > 100)] = np.nan
+df['CNDL'][(df['CNDL'] < 0) | (df['CNDL'] > 100)] = np.nan
+df['CNLS'][(df['CNLS'] < 0) | (df['CNLS'] > 100)] = np.nan
+df['DPOR'][(df['DPOR'] < 0) | (df['DPOR'] > 100)] = np.nan
+df['CNPOR'][(df['CNPOR'] < 0) | (df['CNPOR'] > 100)] = np.nan
 
-d['SPOR'][d['SPOR'] < 0] = np.nan
+df['SPOR'][df['SPOR'] < 0] = np.nan
 
 #*****************************************************
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import lasio
 
 f = open('1051661275.las', 'r') # 'r' = read
 lines = f.read()
 
-#opening file and convering it to a data frame
-las = lasio.read('1051661275.las')
-df = las.df()  
 
 #depth was set as index, creating a new column for depth and setting a new index
 df['DEPTH'] = df.index
 index=pd.Index(list(range(9473)))
 df = df.set_index([index])
-x=df.describe()
-
-#cleaning GR, removing zeros, negative values and really high values
-GRzeros = df["GR"].value_counts().loc[0]
-logic1 = df["GR"] == 0
-df.loc[logic1,"GR"] = np.nan
-GR100k = df["GR"].value_counts().loc[100000]
-logic2 = df["GR"] == 100000
-df.loc[logic2,"GR"] = np.nan
-logic3 = df["GR"] < 0
-df.loc[logic3,"GR"] = np.nan
 
 
 #plotting GR
@@ -68,8 +53,8 @@ span = abs(left_col_value - right_col_value)
 cmap = plt.get_cmap('summer_r')
 color_index = np.arange(left_col_value, right_col_value, span / 100)
 ax = df.plot(x='GR', y='DEPTH', c='black', lw=0.5, legend=False, figsize=(7,10))
-plt.ylim(5050, 0)
-plt.xlim(0,550)
+plt.ylim(5031, 295)
+plt.xlim(0,250)
 plt.tick_params(axis='both', which='major', labelsize=10, labelbottom = False, bottom=False, top = False, labeltop=True)
 plt.ylabel("Depth (ft)")
 plt.title('Gamma Ray')
@@ -79,31 +64,15 @@ ax.xaxis.set_label_position('top')
 for index in sorted(color_index):
     index_value = (index - left_col_value)/span
     color = cmap(index_value) 
-    plt.fill_betweenx(df['DEPTH'], 550 , curve, where = curve >= index,  color = color)
+    plt.fill_betweenx(df['DEPTH'], 250 , curve, where = curve >= index,  color = color)
 plt.show()
 
 #finding potential reservoir thickness in meters assuming GR<50= good reservoir
-logic4= df['GR']<50
-print('Thickness of potential reservoir is', logic4.sum()*0.5*0.3048, 'm')
+#depth is at 0.5ft interval
+
+print('Thickness of potential reservoir is', (df['GR'] < 50).sum()*0.5*0.3048, 'm')
 
 
-#cleaning RILD, removing 100k values, and values above 5000
-RILD100k = df["RILD"].value_counts().loc[100000]
-logic5 = df["RILD"] == 100000
-df.loc[logic5,"RILD"] = np.nan
-logic6 = df["RILD"] >5000
-df.loc[logic6,"RILD"] = np.nan
-x=df.describe()
-
-#Repeating same for RILM
-RILM100k = df["RILM"].value_counts().loc[100000]
-logic7 = df["RILM"] == 100000
-df.loc[logic7,"RILM"] = np.nan
-logic8 = df["RILM"] >5000
-df.loc[logic8,"RILM"] = np.nan
-x=df.describe()
-
-#shallow resistivity seems alright
 #plotting resistivity log
 
 ax = df.plot(x='RILD', y='DEPTH', c='red', lw=0.5, legend='Deep resistivity', figsize=(7,10))
