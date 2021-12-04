@@ -144,7 +144,7 @@ ax12 = ax3.twiny()
 ax12.xaxis.set_visible(False)
 
 # Gamma Ray track
-ax1.plot(df["GR"], df.index, color = "green", linewidth = 0.5)
+ax1.plot(df["GR"], df['DEPTH'], color = "green", linewidth = 0.5)
 ax1.set_xlabel("Gamma")
 ax1.xaxis.label.set_color("green")
 ax1.set_xlim(0, 200)
@@ -155,7 +155,7 @@ ax1.title.set_color('green')
 ax1.set_xticks([0, 50, 100, 150, 200])
 
 # Resistivity track
-ax2.plot(df["RILD"], df.index, color = "red", linewidth = 0.5)
+ax2.plot(df["RILD"], df['DEPTH'], color = "red", linewidth = 0.5)
 ax2.set_xlabel("Resistivity - Deep")
 ax2.set_xlim(0.2, 2000)
 ax2.xaxis.label.set_color("red")
@@ -165,7 +165,7 @@ ax2.set_xticks([0.1, 1, 10, 100, 1000])
 ax2.semilogx()
 
 # Density track
-ax3.plot(df["RHOB"], df.index, color = "k", linewidth = 0.5)
+ax3.plot(df["RHOB"], df['DEPTH'], color = "k", linewidth = 0.5)
 ax3.set_xlabel("Density")
 ax3.set_xlim(1.95, 2.95)
 ax3.xaxis.label.set_color("k")
@@ -174,7 +174,7 @@ ax3.spines["top"].set_edgecolor("k")
 ax3.set_xticks([1.95, 2.45, 2.95])
 
 # Neutron track placed ontop of density track
-ax5.plot(df["CNPOR"], df.index, color = "k", linewidth = 0.5)
+ax5.plot(df["CNPOR"], df['DEPTH'], color = "k", linewidth = 0.5)
 ax5.set_xlabel('Neutron')
 ax5.xaxis.label.set_color("k")
 ax5.set_xlim(45, -15)
@@ -186,7 +186,7 @@ ax5.spines["top"].set_edgecolor("k")
 ax5.set_xticks([45,  15, -15])
 
 # Resistivity track - Curve 2
-ax7.plot(df["RILM"], df.index, color = "green", linewidth = 0.5)
+ax7.plot(df["RILM"], df['DEPTH'], color = "green", linewidth = 0.5)
 ax7.set_xlabel("Resistivity - Med")
 ax7.set_xlim(0.2, 2000)
 ax7.xaxis.label.set_color("green")
@@ -287,7 +287,7 @@ r_sq = model.score(chx, chy)
 y_pred = model.predict(chx)
 ax.plot(chx,y_pred, color="k")
 
-#****************************Kclustering**************************
+#****************************K-means clustering**************************
 xy = np.hstack((x,y))
 km = KMeans(
     n_clusters=3, init='random',
@@ -321,7 +321,7 @@ ax.scatter(
 )
 ax.set_xlabel('Porosity (%)')
 ax.set_ylabel('Permeability (mD)')
-ax.set_title('K Clustering')
+ax.set_title('K-Means Clustering')
 ax.legend()
 
 fig_c, ax = plt.subplots()
