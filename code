@@ -209,27 +209,29 @@ fig.subplots_adjust(wspace = 0.15)
 
 d=pd.read_csv('poro_perm_data.csv')
 
-#eliminating negative porosity values 
-boolpor =d.loc[:,"Porosity (%)"] > 0  
-d=d[boolpor]
+#remove nan values from dataset
+d=d.dropna()
+
+#eliminating negative porosity and permeability values 
+clean = (d["Permeability (mD)"] > 0)  & (d['Porosity (%)'] > 0)
+d=d[clean]
 
 
 #LR for whole data set
 x=d.loc[:,'Porosity (%)'].to_numpy().reshape(-1,1)
 y=d.loc[:,'Permeability (mD)'].to_numpy().reshape(-1,1)
-plt.scatter(x,y)
-plt.xlabel('Porosity (%)')
-plt.ylabel('Permeability (mD)')
-plt.title('Porosity vs. Permeability')
-plt.show()
-d=d.dropna()
+fig_reg, ax = plt.subplots()
+ax.scatter(x,y)
+ax.set_xlabel('Porosity (%)')
+ax.set_ylabel('Permeability (mD)')
+ax.set_title('Porosity vs. Permeability')
+
 
 model = LinearRegression()
 model.fit(x, y)
 r_sq = model.score(x, y)
 y_pred = model.predict(x)
-plt.scatter(x,y)
-plt.plot(x,y_pred, color="k")
+ax.plot(x,y_pred, color="k")
 
 #LR for overbanks facies
 boolob=d.loc[:,'Facies']=="'overbanks'"
@@ -237,17 +239,17 @@ overbanks=d[boolob]
 
 obx=overbanks.loc[:,'Porosity (%)'].to_numpy().reshape(-1,1)
 oby=overbanks.loc[:,'Permeability (mD)'].to_numpy().reshape(-1,1)
-plt.scatter(obx,oby)
-plt.xlabel('Porosity (%)')
-plt.ylabel('Permeability (mD)')
-plt.title('Overbanks: phi vs. K')
-plt.show()
+fig_ob, ax = plt.subplots()
+ax.scatter(obx,oby)
+ax.set_xlabel('Porosity (%)')
+ax.set_ylabel('Permeability (mD)')
+ax.set_title('Overbanks: phi vs. K')
+
 model = LinearRegression()
 model.fit(obx, oby)
 r_sq = model.score(obx, oby)
 y_pred = model.predict(obx)
-plt.scatter(obx,oby)
-plt.plot(obx,y_pred, color="k")
+ax.plot(obx,y_pred, color="k")
 
 #LR for crevasse splay facies
 boolcs=d.loc[:,'Facies']=="'crevasse splay'"
@@ -255,17 +257,17 @@ crevasse=d[boolcs]
 
 csx=crevasse.loc[:,'Porosity (%)'].to_numpy().reshape(-1,1)
 csy=crevasse.loc[:,'Permeability (mD)'].to_numpy().reshape(-1,1)
-plt.scatter(csx,csy)
-plt.xlabel('Porosity (%)')
-plt.ylabel('Permeability (mD)')
-plt.title('Crevasse Splay: phi vs. K')
-plt.show()
+fig_cs, ax = plt.subplots()
+ax.scatter(csx,csy)
+ax.set_xlabel('Porosity (%)')
+ax.set_ylabel('Permeability (mD)')
+ax.set_title('Crevasse Splay: phi vs. K')
+
 model = LinearRegression()
 model.fit(csx, csy)
 r_sq = model.score(csx, csy)
 y_pred = model.predict(csx)
-plt.scatter(csx,csy)
-plt.plot(csx,y_pred, color="k")
+ax.plot(csx,y_pred, color="k")
 
 #LR for channels facies
 boolch=d.loc[:,'Facies']=="'channel'"
@@ -273,14 +275,60 @@ channel=d[boolch]
 
 chx=channel.loc[:,'Porosity (%)'].to_numpy().reshape(-1,1)
 chy=channel.loc[:,'Permeability (mD)'].to_numpy().reshape(-1,1)
-plt.scatter(chx,chy)
-plt.xlabel('Porosity (%)')
-plt.ylabel('Permeability (mD)')
-plt.title('Channels: phi vs. K')
-plt.show()
+fig_ch, ax = plt.subplots()
+ax.scatter(chx,chy)
+ax.set_xlabel('Porosity (%)')
+ax.set_ylabel('Permeability (mD)')
+ax.set_title('Channels: phi vs. K')
+
 model = LinearRegression()
 model.fit(chx, chy)
 r_sq = model.score(chx, chy)
 y_pred = model.predict(chx)
-plt.scatter(chx,chy)
-plt.plot(chx,y_pred, color="k")
+ax.plot(chx,y_pred, color="k")
+
+#****************************Kclustering**************************
+xy = np.hstack((x,y))
+km = KMeans(
+    n_clusters=3, init='random',
+    n_init=10, max_iter=300, 
+    tol=1e-04, random_state=0
+)
+y_km = km.fit_predict(xy)
+
+fig_k, ax = plt.subplots()
+
+# plot clusters
+ax.scatter(
+    xy[y_km == 0, 0], xy[y_km == 0, 1],
+    s=50, c='lightgreen',
+    marker='s', edgecolor='black',
+    label='cluster 1'
+)
+
+ax.scatter(
+    xy[y_km == 1, 0], xy[y_km == 1, 1],
+    s=50, c='orange',
+    marker='o', edgecolor='black',
+    label='cluster 2'
+)
+
+ax.scatter(
+    xy[y_km == 2, 0], xy[y_km == 2, 1],
+    s=50, c='red',
+    marker='v', edgecolor='black',
+    label='cluster 3'
+)
+ax.set_xlabel('Porosity (%)')
+ax.set_ylabel('Permeability (mD)')
+ax.set_title('K Clustering')
+ax.legend()
+
+fig_c, ax = plt.subplots()
+ax.scatter(obx,oby, c='k', label='Overbanks')
+ax.scatter(chx,chy, label='Channels')
+ax.scatter(csx,csy, c='red', label='Crevasse Splay')
+ax.set_xlabel('Porosity (%)')
+ax.set_ylabel('Permeability (mD)')
+ax.set_title('Poro vs Perm (Facies)')
+ax.legend()
