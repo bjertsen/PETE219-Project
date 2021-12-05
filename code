@@ -371,3 +371,13 @@ ax.text(31,21,'Mean: ' + str(round(d['Porosity (%)'].mean(), 3)) + "\nMedian: " 
         str(round(d['Porosity (%)'].median(), 3)) + '\nMin: ' + 
         str(round(d['Porosity (%)'].min(), 3)) + '\nMax: ' + 
         str(round(d['Porosity (%)'].max(), 3)), bbox=dict(facecolor='red', alpha=0.2))
+
+#*****************************Euclidean distance************************
+
+def predict_perm(poro):    
+    temp_df = d.copy() # copy the dataframe     
+    temp_df["Euclidean_distance"] = np.sqrt((temp_df['Porosity (%)'] - poro)**2)   #creating euclidean distance column
+    temp_df = temp_df.sort_values("Euclidean_distance") #Sorting rows according to Euclidean_distance in ascending order    
+    nearest_neighbors = temp_df.iloc[0:5]['Permeability (mD)'] # select top 5 similar listing    
+    predicted_perm = nearest_neighbors.mean() # Estimating mean price of top 5 similar listing    
+    return(predicted_perm)
