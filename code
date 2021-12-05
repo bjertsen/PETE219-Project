@@ -23,6 +23,7 @@ summary=df.describe()
 #negative sonic log values (SPOR)
 
 df['RHOB'][(df['RHOB'] < 0) | (df['RHOB'] > 20)] = np.nan
+df['RHOC'][(df['RHOC'] <= 0) | (df['RHOC'] > 20)] = np.nan 
 df['GR'][(df['GR'] > 1000) | (df['GR'] < 0)] = np.nan
 df['RILD'][df['RILD'] > 99999] = np.nan
 df['RILM'][df['RILM'] > 99999] = np.nan
