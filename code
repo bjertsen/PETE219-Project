@@ -337,3 +337,37 @@ ax.set_xlabel('Porosity (%)')
 ax.set_ylabel('Permeability (mD)')
 ax.set_title('Poro vs Perm (Facies)')
 ax.legend()
+
+#stratified sampling******************************************
+strata1 = d[d['Facies'] == "'overbanks'"]
+strata2 = d[d['Facies'] == "'channel'"]
+strata3 = d[d['Facies'] == "'crevasse splay'"]
+proportional_sampling_means = [] 
+for i in range(100):    
+    s1 = strata1['Porosity (%)'].sample(5,random_state = i)      
+    s2 = strata2['Porosity (%)'].sample(15,random_state = i)    
+    s3 = strata3['Porosity (%)'].sample(10,random_state = i)    
+    final_sample= pd.concat([s1,s2,s3])    
+    proportional_sampling_means.append(final_sample.mean())
+
+fig_ss, ax = plt.subplots()
+
+ax.scatter(range(1,101), proportional_sampling_means)
+ax.axhline(d['Porosity (%)'].mean(), c='k', label='Population Mean')
+ax.axhline(np.array(proportional_sampling_means).mean(), c='red', label='Sample Mean')
+ax.set_ylabel('Porosity (%)')
+ax.set_xlabel('Sample')
+ax.set_title('Stratified Sampling of Dataset')
+ax.legend()
+
+#histogram***************************************************
+fig_hist, ax = plt.subplots()
+
+ax.hist(d['Porosity (%)'])
+ax.set_ylabel('Frequency')
+ax.set_xlabel('Porosity (%)')
+ax.set_title('Porosity Histogram')
+ax.text(31,21,'Mean: ' + str(round(d['Porosity (%)'].mean(), 3)) + "\nMedian: " + 
+        str(round(d['Porosity (%)'].median(), 3)) + '\nMin: ' + 
+        str(round(d['Porosity (%)'].min(), 3)) + '\nMax: ' + 
+        str(round(d['Porosity (%)'].max(), 3)), bbox=dict(facecolor='red', alpha=0.2))
