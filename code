@@ -372,7 +372,16 @@ ax.text(31,21,'Mean: ' + str(round(d['Porosity (%)'].mean(), 3)) + "\nMedian: " 
         str(round(d['Porosity (%)'].median(), 3)) + '\nMin: ' + 
         str(round(d['Porosity (%)'].min(), 3)) + '\nMax: ' + 
         str(round(d['Porosity (%)'].max(), 3)), bbox=dict(facecolor='red', alpha=0.2))
-
+        
+fig_hist2, ax = plt.subplots()
+ax.hist(d['Permeability (mD)'])
+ax.set_ylabel('Frequency')
+ax.set_xlabel('Permeability (mD)')
+ax.set_title('Porosity Histogram')
+ax.text(250,38,'Mean: ' + str(round(d['Permeability (mD)'].mean(), 3)) + "\nMedian: " + 
+        str(round(d['Permeability (mD)'].median(), 3)) + '\nMin: ' + 
+        str(round(d['Permeability (mD)'].min(), 3)) + '\nMax: ' + 
+        str(round(d['Permeability (mD)'].max(), 3)), bbox=dict(facecolor='red', alpha=0.2))
 #*****************************Euclidean distance************************
 
 def predict_perm(poro):    
